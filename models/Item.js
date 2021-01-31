@@ -25,6 +25,10 @@ const ItemSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    categoryId: {
+        type: ObjectId,
+        ref: 'Item',
+    },
     imageId: [{
         type: ObjectId,
         ref: 'Image',
