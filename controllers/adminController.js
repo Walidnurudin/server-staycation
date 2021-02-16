@@ -155,12 +155,16 @@ module.exports = {
     // ITEM
     viewItem: async (req, res) => {
         try {
+            const item = await Item.find()
+                .populate({ path: 'imageId', select: 'id imageUrl' })
+                .populate({ path: 'categoryId', select: 'id name' });
             const category = await Category.find({});
             const alertMessage = req.flash('alertMessage');
             const alertStatus = req.flash('alertStatus');
             const alert = { message: alertMessage, status: alertStatus }
             res.render('admin/item/view_item.ejs', {
                 title: 'Staycation | Item',
+                item,
                 category,
                 alert,
             })
@@ -173,9 +177,9 @@ module.exports = {
 
     addItem: async (req, res) => {
         try {
-            const {categoryId, title, price, city, about} = req.body;
-            if(req.files.length > 0){
-                const category = await Category.findOne({_id: categoryId});
+            const { categoryId, title, price, city, about } = req.body;
+            if (req.files.length > 0) {
+                const category = await Category.findOne({ _id: categoryId });
                 const newItem = {
                     categoryId: category._id,
                     title,
@@ -185,11 +189,11 @@ module.exports = {
                 };
                 const item = await Item.create(newItem);
                 console.log("item : ", item, "category : ", category)
-                category.itemId.push({_id: item._id});
+                category.itemId.push({ _id: item._id });
                 await category.save();
                 for (let i = 0; i < req.files.length; i++) {
-                    const imageSave = await Image.create({imageUrl: `images/${req.files[i].filename}`});
-                    item.imageId.push({_id: imageSave._id});
+                    const imageSave = await Image.create({ imageUrl: `images/${req.files[i].filename}` });
+                    item.imageId.push({ _id: imageSave._id });
                     await item.save();
                 };
                 req.flash('alertMessage', 'Success Add Item');
