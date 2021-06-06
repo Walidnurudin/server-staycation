@@ -452,6 +452,34 @@ module.exports = {
         }
     },
 
+    editActivity: async (req, res) => {
+        const { id, name, type, itemId } = req.body;
+        try {
+            const activity = await Activity.findOne({ _id: id });
+            if (req.file == undefined) {
+                activity.name = name;
+                activity.type = type;
+                await activity.save();
+                req.flash('alertMessage', 'Success Update Activity');
+                req.flash('alertStatus', 'success');
+                res.redirect(`/admin/item/show-detail-item/${itemId}`);
+            } else {
+                await fs.unlink(path.join(`public/${activity.imageUrl}`));
+                activity.name = name;
+                activity.type = type;
+                activity.imageUrl = `images/${req.file.filename}`;
+                await activity.save();
+                req.flash('alertMessage', 'Success Update Activity');
+                req.flash('alertStatus', 'success');
+                res.redirect(`/admin/item/show-detail-item/${itemId}`);
+            }
+        } catch (error) {
+            req.flash('alertMessage', `${error.message}`);
+            req.flash('alertStatus', 'danger');
+            res.redirect(`/admin/item/show-detail-item/${itemId}`);
+        }
+    },
+
     // BOOKING
     viewBooking: (req, res) => {
         res.render('admin/booking/view_booking.ejs', { title: 'Staycation | Booking' })
