@@ -4,8 +4,10 @@ const Item = require('../models/Item');
 const Image = require('../models/Image');
 const Feature = require('../models/Feature');
 const Activity = require('../models/Activity');
+const Users = require('../models/Users');
 const fs = require('fs-extra');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 
 module.exports = {
     viewSignin: async (req, res) => {
@@ -19,6 +21,27 @@ module.exports = {
             })
         } catch (error) {
             res.redirect('/admin/signin')
+        }
+    },
+    actionSignin: async (req, res) => {
+        try {
+            const { username, password } = req.body;
+            const user = await Users.findOne({ username: username });
+            if (!user) {
+                req.flash('alertMessage', 'User yang anda masukan tidak ada!');
+                req.flash('alertStatus', 'danger');
+                res.redirect('/admin/signin');
+            }
+            const isPasswordMatch = await bcrypt.compare(password, user.password);
+            if(!isPasswordMatch){
+                req.flash('alertMessage', 'Password yang anda masukan tidak cocok!');
+                req.flash('alertStatus', 'danger');
+                res.redirect('/admin/signin');
+            }
+
+            res.redirect('/admin/dashboard');
+        } catch (error) {
+            res.redirect('/admin/signin');
         }
     },
     viewDashboard: (req, res) => {
@@ -343,7 +366,7 @@ module.exports = {
             const alertStatus = req.flash('alertStatus');
             const alert = { message: alertMessage, status: alertStatus };
             const feature = await Feature.find({ itemId: itemId });
-            const activity = await Activity.find({itemId: itemId});
+            const activity = await Activity.find({ itemId: itemId });
             res.render('admin/item/detail_item/view_detail_item', {
                 title: 'Staycation | Detail Item',
                 alert,
@@ -417,13 +440,13 @@ module.exports = {
     deleteFeature: async (req, res) => {
         const { id, itemId } = req.params;
         try {
-            const feature = await Feature.findOne({_id: id});
-            const item = await Item.findOne({_id: itemId}).populate('featureId');
+            const feature = await Feature.findOne({ _id: id });
+            const item = await Item.findOne({ _id: itemId }).populate('featureId');
             for (let i = 0; i < item.featureId.length; i++) {
-                if(item.featureId[i]._id.toString() === feature._id.toString()){
-                    item.featureId.pull({_id: feature._id});
+                if (item.featureId[i]._id.toString() === feature._id.toString()) {
+                    item.featureId.pull({ _id: feature._id });
                     await item.save();
-                }                
+                }
             }
             await fs.unlink(path.join(`public/${feature.imageUrl}`));
             await feature.remove();
@@ -496,13 +519,13 @@ module.exports = {
     deleteActivity: async (req, res) => {
         const { id, itemId } = req.params;
         try {
-            const activity = await Activity.findOne({_id: id});
-            const item = await Item.findOne({_id: itemId}).populate('activityId');
+            const activity = await Activity.findOne({ _id: id });
+            const item = await Item.findOne({ _id: itemId }).populate('activityId');
             for (let i = 0; i < item.activityId.length; i++) {
-                if(item.activityId[i]._id.toString() === activity._id.toString()){
-                    item.activityId.pull({_id: activity._id});
+                if (item.activityId[i]._id.toString() === activity._id.toString()) {
+                    item.activityId.pull({ _id: activity._id });
                     await item.save();
-                }                
+                }
             }
             await fs.unlink(path.join(`public/${activity.imageUrl}`));
             await activity.remove();
