@@ -15,15 +15,15 @@ module.exports = {
             const alertMessage = req.flash('alertMessage');
             const alertStatus = req.flash('alertStatus');
             const alert = { message: alertMessage, status: alertStatus };
-            if(req.session.user == null || req.session.user == undefined){
+            if (req.session.user == null || req.session.user == undefined) {
                 res.render('index', {
                     alert,
                     title: 'Staycation | Login',
-                })    
-            }else{
+                })
+            } else {
                 res.redirect('/admin/dashboard')
             }
-            } catch (error) {
+        } catch (error) {
             res.redirect('/admin/signin')
         }
     },
@@ -39,12 +39,12 @@ module.exports = {
             }
 
             const isPasswordMatch = await bcrypt.compare(password, user.password);
-            if(!isPasswordMatch){
+            if (!isPasswordMatch) {
                 req.flash('alertMessage', 'Password yang anda masukan tidak cocok!');
                 req.flash('alertStatus', 'danger');
                 res.redirect('/admin/signin');
             }
-            
+
             req.session.user = {
                 id: user.id,
                 username: user.username,
@@ -55,8 +55,20 @@ module.exports = {
         }
     },
 
+    actionLogout: (req, res) => {
+        req.session.destroy();
+        res.redirect('/admin/signin');
+    },
+
     viewDashboard: (req, res) => {
-        res.render('admin/dashboard/view_dashboard.ejs', { title: 'Staycation | Dashboard' })
+        try {
+            res.render('admin/dashboard/view_dashboard.ejs', {
+                title: 'Staycation | Dashboard',
+                user: req.session.user,
+            })
+        } catch (error) {
+            
+        }
     },
 
     // CATEGORY
@@ -66,7 +78,12 @@ module.exports = {
             const alertStatus = req.flash('alertStatus');
             const alert = { message: alertMessage, status: alertStatus }
             const category = await Category.find();
-            res.render('admin/category/view_category.ejs', { category, alert, title: 'Staycation | Category' })
+            res.render('admin/category/view_category.ejs', {
+                category,
+                alert,
+                title: 'Staycation | Category',
+                user: req.session.user,
+            })
         } catch (error) {
             res.redirect('/admin/category');
         }
@@ -125,10 +142,12 @@ module.exports = {
             const alertMessage = req.flash('alertMessage');
             const alertStatus = req.flash('alertStatus');
             const alert = { message: alertMessage, status: alertStatus }
-            res.render(
-                'admin/bank/view_bank.ejs',
-                { title: 'Staycation | Bank', alert, bank }
-            )
+            res.render('admin/bank/view_bank.ejs', {
+                title: 'Staycation | Bank',
+                alert,
+                bank,
+                user: req.session.user,
+            })
         } catch (error) {
             req.flash('alertMessage', `${error.message}`);
             req.flash('alertStatus', 'danger');
@@ -217,6 +236,7 @@ module.exports = {
                 category,
                 alert,
                 action: 'view',
+                user: req.session.user,
             });
         } catch (error) {
             req.flash('alertMessage', `${error.message}`);
@@ -270,6 +290,7 @@ module.exports = {
                 item,
                 alert,
                 action: 'show image',
+                user: req.session.user,
             });
         } catch (error) {
             req.flash('alertMessage', `${error.message}`);
@@ -294,6 +315,7 @@ module.exports = {
                 alert,
                 category,
                 action: 'edit',
+                user: req.session.user,
             });
         } catch (error) {
             req.flash('alertMessage', `${error.message}`);
@@ -384,6 +406,7 @@ module.exports = {
                 itemId,
                 feature,
                 activity,
+                user: req.session.user,
             })
         } catch (error) {
             req.flash('alertMessage', `${error.message}`);
@@ -552,6 +575,9 @@ module.exports = {
 
     // BOOKING
     viewBooking: (req, res) => {
-        res.render('admin/booking/view_booking.ejs', { title: 'Staycation | Booking' })
+        res.render('admin/booking/view_booking.ejs', {
+            title: 'Staycation | Booking',
+            user: req.session.user,
+        })
     }
 }
