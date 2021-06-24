@@ -579,17 +579,32 @@ module.exports = {
     viewBooking: async (req, res) => {
         try {
             const booking = await Booking.find()
-            .populate('bankId')
-            .populate('memberId');
+                .populate('bankId')
+                .populate('memberId');
             res.render('admin/booking/view_booking.ejs', {
                 title: 'Staycation | Booking',
                 user: req.session.user,
                 booking,
             })
         } catch (error) {
-            // req.flash('alertMessage', `${error.message}`);
-            // req.flash('alertStatus', 'danger');
-            // res.redirect(`/admin/booking`);
+            res.redirect(`/admin/booking`);
+        }
+    },
+
+    showDetailBooking: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const booking = await Booking.findOne({ _id: id })
+                .populate('bankId')
+                .populate('memberId');
+                console.log(booking)
+            res.render('admin/booking/show_detail_booking', {
+                title: 'Staycation | Detail Booking',
+                user: req.session.user,
+                booking,
+            })
+        } catch (error) {
+
         }
     }
 }
